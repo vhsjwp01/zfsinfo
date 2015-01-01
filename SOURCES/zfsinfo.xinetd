@@ -1,0 +1,13 @@
+# default: off
+# description: The zfsinfo server echos the output of the "zpool status -T d" command
+#	in JSON
+service zfsinfo
+{
+	disable	= yes
+	flags		= IPv6
+	socket_type     = stream
+	wait            = no
+	user            = root
+	server          = /usr/local/sbin/zpool2json
+	log_on_failure  += USERID
+}
