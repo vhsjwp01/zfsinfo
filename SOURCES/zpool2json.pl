@@ -17,18 +17,20 @@ my $USAGE           = "$0 < alternate input file for debugging >";
 # VARIABLES
 ################################################################################
 
-my $exit_code       = $SUCCESS;
-my $err_msg         = "";
+my $exit_code          = $SUCCESS;
+my $err_msg            = "";
 
-my $counter         = 0;
-my $config_flag     = 0;
-my $end_flag        = 0;
-my $indent          = "    ";
-my $indent_level    = 1;
-my $old_space_count = 0;
-my $new_space_count = 0;
+my $counter            = 0;
+my $config_flag        = 0;
+my $end_flag           = 0;
+my $indent             = "    ";
+my $indent_level       = 1;
+my $old_indent_level   = 1;
+my $delta_indent_level = 0;
+my $old_space_count    = 0;
+my $new_space_count    = 0;
 
-my $my_zpool        = "";
+my $my_zpool           = "";
 
 ################################################################################
 # SUBROUTINES
@@ -113,7 +115,7 @@ if ( $exit_code == $SUCCESS ) {
             } else {
     
                 if (( $input_line !~ /NAME/ ) && ( $input_line ne "" )) {
-    
+
                     # Check the amount of leading spaces
                     # This will be used to determine any indentation level changes
                     my $str = $input_line;
@@ -130,6 +132,17 @@ if ( $exit_code == $SUCCESS ) {
                     } elsif ( $new_space_count < $old_space_count ) {
                         print "\n";
                         $indent_level--;
+
+                        # Figure out if we are closing out a single indent or 2
+                        $delta_indent_level = $old_indent_level - $indent_level;
+
+                        if ( $delta_indent_level > 1 ) {
+                            $indent_level++;
+                            &f__indent( $indent_level, $indent );
+                            print "\}\n";
+                            $indent_level--;
+                        }
+
                         &f__indent( $indent_level, $indent );
                         print "\},\n";
                     } else {
@@ -137,7 +150,7 @@ if ( $exit_code == $SUCCESS ) {
                         &f__indent( $indent_level, $indent );
                         print "\},\n";
                     }
-    
+
                     # Now that we think we are clear on indentation, it is
                     # time to clear out those leading spaces before printing
                     $input_line =~ s/^\s*//g;
@@ -160,6 +173,7 @@ if ( $exit_code == $SUCCESS ) {
                     print "\"write\" : \"$write\",\n";
                     &f__indent( $indent_level, $indent );
                     print "\"cksum\" : \"$cksum\"";
+                    $old_indent_level = $indent_level;
                     $indent_level--;
     
                     # Reset the leading space counter
